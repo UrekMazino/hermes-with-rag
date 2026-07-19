@@ -2,6 +2,10 @@
 
 A fully-local AI workstation powered by Qwen3-30B-A3B, hosted on an RTX 4080 SUPER with 16 GB VRAM. This stack runs the Qwen3-30B model with full 64K context using a custom llama.cpp server with memory-optimized configuration, enabling advanced local AI workflows with Hermes Agent and Roo Code.
 
+> **Rebuilding this on a new machine / server?** Start with **[`DEPLOYMENT_RUNBOOK.md`](DEPLOYMENT_RUNBOOK.md)** —
+> the single ordered guide (Hermes → llama.cpp → lockdown → RAG → eLibrary → catalog sync) with a
+> doc index across both repos. This README covers day-to-day serving.
+
 ## Architecture
 
 The system follows a modular architecture:
