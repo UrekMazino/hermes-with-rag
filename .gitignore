@@ -1,0 +1,66 @@
+# ============================================================================
+#  hermes-with-rag — code, scripts and docs only.
+#  Models, the PDF corpus, the LanceDB index, the venv and all generated data
+#  stay OUT of git (they are huge and/or regenerable).
+# ============================================================================
+
+# ---- Python venv + caches ----
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ---- Models, runtimes, binaries (never in git) ----
+models/
+llama-cpp/
+_downloads/
+rag/_downloads/
+*.gguf
+*.safetensors
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# ---- RAG corpus / index / generated data (huge, regenerable) ----
+rag/pdf/
+rag/lancedb/
+rag/ocr_out/
+rag/chroma/
+rag/stage2/
+rag/stage3/
+rag/triage_output/
+rag/catalog_out/
+rag/docs/
+
+# ---- Bulk data file types ----
+*.pdf
+*.jsonl
+*.lance
+*.csv
+*.parquet
+*.duckdb
+*.sqlite
+*.db
+
+# ---- Logs / temp / OS ----
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# ---- Secrets — never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
