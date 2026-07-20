@@ -134,7 +134,8 @@ Full operations (flags, nightly reconcile, scheduling, GPU contention): **`CATAL
 | `SERVER_SPEC.md` | future dedicated inference server (70B, vLLM, parts list) |
 | `PACKAGING_AND_DEPLOYMENT.md` | packaging plan (Docker Compose, code↔data split) |
 | `HERMES_SECURITY_LOCKDOWN_2026-07-09.md` | the `locked-rag` hardening |
-| `CATALOG_SYNC_RUNBOOK.md` | run/schedule the eLibrary→RAG sync worker |
+| `CATALOG_SYNC_RUNBOOK.md` | run/schedule the eLibrary→RAG sync worker (full reference) |
+| `MANUAL_REINDEX_PROCEDURE.md` | short task guide: clear "Pending" rows in the AI Sync Monitor |
 | `CHANGES_2026-07-08_hermes-rag-toolcalling.md` | tool-calling fix log |
 | `rag/README.md` | RAG pipeline: add papers, (re)build index, MCP tool |
 | `rag/RAG_PLAN_AND_PROGRESS.md` | full RAG plan + progress (triage→OCR→chunk→embed) |

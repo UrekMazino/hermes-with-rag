@@ -7,6 +7,9 @@ newly created / edited / deleted / (un)published materials.
 Design rationale + the full plan live in the eLibrary repo: **`RAG_CATALOG_SYNC_PLAN.md`**. This
 file is the *how-to-run-it* companion.
 
+> **Just need to clear "Pending" rows in the AI Sync Monitor?** Use the short task guide:
+> **[`MANUAL_REINDEX_PROCEDURE.md`](MANUAL_REINDEX_PROCEDURE.md)**. This runbook is the full reference.
+
 ---
 
 ## How it works (30-second version)
