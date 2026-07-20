@@ -17,6 +17,7 @@ LanceDB/BGE calls via asyncio.to_thread (safe once imported in the main thread).
 import asyncio
 import os
 import sys
+import time
 from pathlib import Path
 
 # Windows w/o Developer Mode can't make HF cache symlinks (WinError 1314) -> copy.
@@ -135,12 +136,35 @@ def _rrf(dense_rows, fts_rows):
 # fires a second) this raised a Rust "already borrowed" panic. One lock => calls queue.
 _search_lock = threading.Lock()
 
+# A LanceDB table handle is a snapshot of ONE dataset version. A long-running server (rag_api, or
+# the docs MCP under the gateway) therefore never sees rows written by ANOTHER process — e.g. the
+# catalog-sync worker — and newly synced records stay invisible until the server restarts.
+# checkout_latest() is a cheap metadata refresh; TTL'd so back-to-back queries don't re-check.
+_TBL_REFRESH_SEC = 15.0
+_tbl_checked_at = 0.0
+
+
+def _refresh_tbl() -> None:
+    """Pick up rows added by another process. Never raises — on failure we keep the old handle."""
+    global _tbl_checked_at
+    if _tbl is None:
+        return
+    now = time.monotonic()
+    if now - _tbl_checked_at < _TBL_REFRESH_SEC:
+        return
+    _tbl_checked_at = now
+    try:
+        _tbl.checkout_latest()
+    except Exception as e:
+        _log(f"table refresh skipped: {type(e).__name__}: {e}")
+
 
 def _search_sync(query: str, k: int, hyde: bool = False):
     """Hybrid (dense+FTS, RRF) retrieve -> cross-encoder rerank -> top k.
     Returns list of (row, score); score is the reranker prob (dense sim on fallback).
     hyde=True: embed query+hypothetical-answer for the DENSE side (FTS + rerank use raw query)."""
     with _search_lock:
+        _refresh_tbl()   # so freshly-synced catalog records are visible without a restart
         dense_text = query
         if hyde:
             h = _hyde_sync(query)

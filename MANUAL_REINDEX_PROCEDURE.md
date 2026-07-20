@@ -87,6 +87,7 @@ becomes **AI-indexed**.
 
 | Symptom | Fix |
 |---|---|
+| Monitor says **Synced**, but AI mode answers *"No answer from the collection"* | The record **is** indexed — the running `rag_api` was holding a LanceDB snapshot from when it started, so it couldn't see rows a *different* process (the worker) added. It now **auto-refreshes every ~15 s** (`_refresh_tbl()` in `rag_mcp_server.py`) — just wait a moment and retry. On a build without that fix, restart `start-rag-api.ps1`. Same applies to Hermes on Discord (restart the gateway). |
 | Items stay **Pending** after running | You ran it in the wrong folder, or used the system Python. Use `.\.venv\Scripts\python.exe` from `…\ProjectY\rag`. |
 | **Failed** rows in the monitor | A row gives up after 5 attempts. Read the cause: `SELECT catalog_id, error FROM rag_sync_queue WHERE processed_at IS NULL AND attempts >= 5;` then hit **Re-sync** (it resets the attempts). |
 | `No module named 'pymysql'` | `uv pip install --python .venv\Scripts\python.exe -r requirements.txt` |
