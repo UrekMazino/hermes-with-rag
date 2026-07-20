@@ -276,6 +276,13 @@ class Embedder:
     device = None   # None -> auto (cuda if available); set to "cpu" to coexist with a running llama-server
 
     @classmethod
+    def use_model(cls, model) -> None:
+        """Adopt an ALREADY-loaded BGE-M3 (same FlagEmbedding API) instead of loading a second
+        copy — used by rag_api's /sync/drain, which has one in memory already (~2 GB saved, and
+        no 30-60 s load per drain)."""
+        cls._model = model
+
+    @classmethod
     def encode(cls, texts: list[str]) -> list[list[float]]:
         if cls._model is None:
             import torch

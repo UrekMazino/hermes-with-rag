@@ -23,7 +23,22 @@ at **Pending**, or you clicked **Re-sync** / **Re-index for AI** and nothing cha
 
 ---
 
-## Steps
+## Option A — the "Run sync now" button (easiest, no terminal)
+
+On the **AI Sync Monitor** page, click **Run sync now**. Laravel asks the RAG gateway to index
+everything queued; the gateway already holds BGE-M3, so there's no model-load wait. It works in
+bounded batches and keeps going until the queue is empty, then reports
+*"Indexed N record(s)"* and refreshes.
+
+Requires **`rag_api` to be running** (`start-rag-api.ps1`) — if it isn't, you'll get
+*"The AI gateway is not responding."* and should use Option B.
+
+> Even easier: if the **`ProjectY-sync-worker`** task is registered (see
+> `register-projecty-tasks.ps1`), a loop drains the queue every 30 s and you never touch either.
+
+---
+
+## Option B — the worker, by hand
 
 **1. Open PowerShell in the RAG folder**
 ```powershell

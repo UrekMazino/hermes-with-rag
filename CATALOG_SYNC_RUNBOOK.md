@@ -113,12 +113,30 @@ The serving llama-server uses ~13.5 GB of 16 GB. So:
 
 ---
 
+## Draining from the app ("Run sync now")
+
+`rag_api` exposes **`POST /sync/drain`** (shared-token auth, same as `/agent/answer`), which the
+eLibrary **AI Sync Monitor**'s *Run sync now* button calls server-side. The gateway does the work
+because it already holds BGE-M3 + LanceDB — no model load, no `exec()` from PHP.
+
+It is **bounded** (`DRAIN_LIMIT` 25, max 200): embedding shares the single model instance with
+search, so an unbounded drain would stall AI-mode queries. The UI simply repeats while
+`remaining > 0`. Response: `{processed, failed, remaining, took_ms}`. After a drain it clears the
+table-refresh TTL so the very next search sees what was just indexed.
+
 ## Scheduling (Windows Task Scheduler)
 
-Mirror the existing OCR task (`register-ocr-task.ps1`). Two typical jobs:
+**`register-projecty-tasks.ps1`** registers three staggered logon tasks (run it **elevated**, once):
 
-- **Drain loop** — a `--loop --cpu` service (or a frequent `--once --cpu`) so edits flow in near-real-time.
-- **Nightly reconcile + drain** — `--reconcile` then `--once`, in the GPU window.
+| Task | Delay | What |
+|---|---|---|
+| `ProjectY-llama-server` | +15s | the model on :8080 |
+| `ProjectY-rag-api` | +60s | AI-mode gateway on :8090 |
+| `ProjectY-sync-worker` | +90s | `start-sync-worker.ps1` → `--loop --interval 30 --cpu` |
+
+With those in place the queue drains itself every 30 s and AI mode survives a reboot. Add a
+**nightly reconcile + drain** (`--reconcile` then `--once`) in the GPU window as the drift backstop.
+The Discord gateway is registered separately by `_setup\register_gateway_task.ps1`.
 
 ---
 

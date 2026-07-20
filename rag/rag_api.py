@@ -43,6 +43,12 @@ SYNTH_MAX_TOKENS = 700
 SYNTH_TEMPERATURE = 0.3
 SYNTH_TIMEOUT = 120
 
+# /sync/drain: how many queued catalog-sync items one call applies. Bounded on purpose —
+# embedding shares the single BGE-M3 instance with search, so an unbounded drain would stall
+# AI-mode queries and time out the HTTP request. The caller repeats while remaining > 0.
+DRAIN_LIMIT = 25
+DRAIN_MAX = 200
+
 # The model emits this sentinel when the passages can't answer -> we surface `abstained`.
 ABSTAIN = "INSUFFICIENT_CONTEXT"
 
@@ -175,5 +181,69 @@ def answer(req: AnswerRequest, authorization: str | None = Header(default=None))
         "answer": "" if abstained else raw,
         "sources": sources,
         "abstained": abstained,
+        "took_ms": int((time.time() - started) * 1000),
+    }
+
+
+class DrainRequest(BaseModel):
+    limit: int | None = None
+
+
+@app.post("/sync/drain")
+def sync_drain(req: DrainRequest | None = None, authorization: str | None = Header(default=None)):
+    """
+    Apply pending catalog-sync items (the eLibrary "Run sync now" button).
+
+    Why here instead of Laravel shelling out to Python: this process already has BGE-M3 loaded
+    and LanceDB open, so a drain costs milliseconds of setup instead of a 30-60 s model load,
+    and it needs no extra credentials or exec() surface.
+
+    Bounded on purpose — embedding shares the single BGE-M3 instance with search, so we take the
+    same lock and cap the batch. The caller re-clicks (or polls) while `remaining > 0`.
+    """
+    _check_token(authorization)
+    started = time.time()
+
+    import rag_sync_worker as worker
+
+    limit = max(1, min(int((req.limit if req else None) or DRAIN_LIMIT), DRAIN_MAX))
+
+    # Reuse the model this process already holds instead of loading a second copy.
+    worker.Embedder.use_model(rag._model)
+
+    processed = failed = 0
+    try:
+        conn = worker.db_conn()
+    except Exception as e:
+        return JSONResponse(status_code=503,
+                            content={"error": f"db unavailable: {type(e).__name__}: {e}"})
+    try:
+        items = worker.claim_batch(conn, limit)
+        for item in items:
+            # Serialize with search: BGE-M3 is one shared instance and isn't safe to drive twice.
+            try:
+                with rag._search_lock:
+                    worker.process_item(conn, item, dry_run=False)
+                worker.mark_done(conn, item["id"])
+                processed += 1
+            except Exception as e:
+                worker.mark_error(conn, item["id"], f"{type(e).__name__}: {e}")
+                failed += 1
+
+        remaining = worker.queue_stats(conn)["pending"] or 0
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+    # Newly written rows live in a newer LanceDB version — drop the refresh TTL so the very next
+    # search re-opens at the latest version and can actually see what we just indexed.
+    rag._tbl_checked_at = 0.0
+
+    return {
+        "processed": processed,
+        "failed": failed,
+        "remaining": int(remaining),
         "took_ms": int((time.time() - started) * 1000),
     }

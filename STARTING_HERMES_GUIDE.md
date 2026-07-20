@@ -89,10 +89,14 @@ taskkill /IM llama-server.exe /F
 ```
 Restart = just re-run steps 2–4. (The `locked-rag` profile is sticky — you never need to re-select it.)
 
-> **Tired of doing this every reboot?** These can be registered as logon scheduled tasks so they come
-> back on their own — see `_setup/register_logon_tasks.ps1` / `_setup/register_gateway_task.ps1` for the
-> pattern used elsewhere (e.g. `register-ocr-task.ps1`). Nothing is registered today, which is why a
-> restart always leaves AI mode down until you run step 4.
+> **Tired of doing this every reboot?** Run **`register-projecty-tasks.ps1` once, elevated** — it
+> registers logon tasks for llama-server (+15s), the RAG API (+60s) and the catalog-sync worker
+> (+90s), so AI mode comes back on its own and the sync queue drains itself:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File "C:\Users\jcvia\PyCharmMiscProject\ProjectY\register-projecty-tasks.ps1"
+> ```
+> (The Discord gateway has its own: `_setup\register_gateway_task.ps1`.) Until you do that, nothing
+> auto-starts — which is why a restart always leaves AI mode down until you run step 4 by hand.
 
 ---
 
