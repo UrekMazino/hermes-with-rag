@@ -114,6 +114,18 @@ cd rag
 ```
 Full operations (flags, nightly reconcile, scheduling, GPU contention): **`CATALOG_SYNC_RUNBOOK.md`**.
 
+Day to day you don't run the worker by hand — either click **Run sync now** on the eLibrary
+**AI Sync Monitor** (it calls the gateway's `POST /sync/drain`), or let the sync-worker task drain
+the queue every 30 s.
+
+**Make it survive reboots** — run once, **elevated**:
+```powershell
+powershell -ExecutionPolicy Bypass -File "<ProjectY>\register-projecty-tasks.ps1"
+```
+Registers logon tasks for llama-server (+15s), the RAG API (+60s) and the sync worker (+90s).
+Without this **nothing auto-starts**, and AI mode is down after every restart until you hand-start
+it (see `STARTING_HERMES_GUIDE.md`).
+
 ## 8. Verify end-to-end
 
 1. `rag/rag_sync_worker.py --stats` → pending trends to 0.
@@ -136,6 +148,8 @@ Full operations (flags, nightly reconcile, scheduling, GPU contention): **`CATAL
 | `HERMES_SECURITY_LOCKDOWN_2026-07-09.md` | the `locked-rag` hardening |
 | `CATALOG_SYNC_RUNBOOK.md` | run/schedule the eLibrary→RAG sync worker (full reference) |
 | `MANUAL_REINDEX_PROCEDURE.md` | short task guide: clear "Pending" rows in the AI Sync Monitor |
+| `register-projecty-tasks.ps1` | register logon tasks (llama-server / rag-api / sync-worker) — run elevated |
+| `start-sync-worker.ps1` | launcher: sync worker `--loop --interval 30 --cpu` |
 | `CHANGES_2026-07-08_hermes-rag-toolcalling.md` | tool-calling fix log |
 | `rag/README.md` | RAG pipeline: add papers, (re)build index, MCP tool |
 | `rag/RAG_PLAN_AND_PROGRESS.md` | full RAG plan + progress (triage→OCR→chunk→embed) |
