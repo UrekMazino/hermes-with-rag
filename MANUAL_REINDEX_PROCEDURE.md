@@ -90,8 +90,11 @@ becomes **AI-indexed**.
 
 ## What to expect
 
-- **`[metadata-only]`** on a record whose PDF is **scanned** is normal — the title/summary/subjects are
-  indexed, but the full text needs the OCR batch (`ocr_run.py`). Not an error.
+- **`[metadata-only]`** is normal and usually **not** a gap. It means *this sync wrote metadata
+  chunks* (title/summary/subjects) — it does **not** mean the record has no full text. The index
+  holds two complementary layers: OCR'd page text from the Stage-3 corpus (keyed by `stem`) and
+  bibliographic metadata (keyed by `catalog_id`), bridged by `accession_number` ↔ `stem`. As of
+  2026-07-28, 7,479 of 7,641 published records (97.9%) already have OCR'd full text indexed.
 - **`[metadata+fulltext]`** means the PDF had an extractable text layer and its content is indexed too.
 - An **on-hold / unpublished** record is intentionally *not* indexed — the worker removes it instead
   (`ensured-absent … (on-hold)`). Only published records are searchable by the AI.

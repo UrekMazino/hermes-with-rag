@@ -159,7 +159,7 @@ record and confirm it's cited.
 | `LanceDB table has no 'catalog_id' column` | run `python lance_add_catalog_id.py` (step 2) |
 | Can't connect to MySQL | check `EL_DB_*` env or that `ELIBRARY_ENV` points at the right `.env`; is MySQL/Laragon up? |
 | Items stuck (never drain) | `--stats` shows `failed` once a row hits 5 attempts; inspect `rag_sync_queue.error` for the cause |
-| Record shows "metadata-only" | its PDF is scanned → needs the OCR batch (`ocr_run.py`); metadata still indexes |
+| Record shows "metadata-only" | Normal, and usually **not** a gap: it means *this sync wrote metadata chunks*. The document's OCR'd full text is almost certainly already in the index from the Stage-3 corpus, resolved via `accession_number` ↔ corpus `stem` (97.9% of published records as of 2026-07-28). Only run `ocr_run.py` for a PDF with no corpus coverage. |
 | VRAM OOM while serving | use `--cpu`, or stop llama-server for the batch |
 
 ---
