@@ -163,6 +163,7 @@ it (see `STARTING_HERMES_GUIDE.md`).
 | `MEILISEARCH_SETUP.md` | OPAC search (Scout/Meilisearch) |
 | `RAG_INTEGRATION_PLAN.md` | how the app is built RAG-ready + the Hermes "Ask the Library" contract |
 | `RAG_CATALOG_SYNC_PLAN.md` | catalog↔RAG live-sync design + what's built |
+| `OPAC_SEO_PLAN.md` | public-launch SEO: per-page metadata, JSON-LD, sitemap/robots, URL slugs |
 | `Z3950_SRU_INTEGRATION_PLAN.md` | (future) copy-cataloging via Z39.50/SRU |
 
 ---
